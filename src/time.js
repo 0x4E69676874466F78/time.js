@@ -1,11 +1,9 @@
 /**
  * Time.js — time tags humanization in HTML documents.
  *
- * @date 2013-12-30
- * @time 00:05
- * @author MaximAL
+ * @author MaximAL, NightFox
  * @link https://github.com/maximal/time.js
- * @copyright © MaximAL 2013
+ * @copyright © MaximAL 2013-2014, NightFox 2015
  */
 var timejs = {
 
@@ -37,6 +35,7 @@ var timejs = {
 		futureSuffix: '',
 		onedayago: ' Вчера', // yesterday
 		twodaysago: ' Позавчера',
+		today: ' Сегодня',
 		at: ' в ',
 		sep: ':',
 		error: 'Ошибка',
@@ -66,7 +65,7 @@ var timejs = {
 				return number + ' ' + few;
 			if (number % 10 === 0 || number % 10 > 4 || (number % 100 > 10 && number % 100 < 15))
 				return number + ' ' + many;
-				
+			
 			return number + ' ' + other;
 		},
 		minutes: function (_minutes) {
@@ -92,7 +91,7 @@ var timejs = {
 
 	/**
 	 * Date humanization
-	 * @param time String or Date object representing given date and time
+	 * @param time String or Date object representing given date and time // на вход время в UTC, пример: 2015-10-15T16:16:40Z
 	 * @returns {*}
 	 */
 	humaneDate: function (time) {
@@ -119,10 +118,11 @@ var timejs = {
  		var hours = (date_raw.getHours()<10?'0':'') + date_raw.getHours();
 		return (
 			  diff < 2700   && lang.pastPrefix + lang.minutes(Math.round(diff / 60))          + lang.pastSuffix ||
-			  diff < 86400  && lang.pastPrefix + lang.hours(Math.round(diff / 3600))          + lang.pastSuffix
+			  diff < 18000  && lang.pastPrefix + lang.hours(Math.round(diff / 3600))          + lang.pastSuffix // только если часов не больше 5
 			) // сделать чтобы вчера уже было при 00 часов
-			|| dayDiff == 1   && lang.pastPrefix + lang.onedayago                               + lang.at + hours + lang.sep + minutes
-			|| dayDiff == 2   && lang.pastPrefix + lang.twodaysago                              + lang.at + hours + lang.sep + minutes
+			|| dayDiff === 0   && lang.pastPrefix + lang.today                                   + lang.at + hours + lang.sep + minutes
+			|| dayDiff === 1   && lang.pastPrefix + lang.onedayago                               + lang.at + hours + lang.sep + minutes
+			|| dayDiff === 2   && lang.pastPrefix + lang.twodaysago                              + lang.at + hours + lang.sep + minutes
 			|| dayDiff < 7   && lang.pastPrefix + lang.days(dayDiff)                            + lang.pastSuffix
 			|| dayDiff < 25  && lang.pastPrefix + lang.weeks(Math.round(dayDiff / 7))           + lang.pastSuffix
 			|| dayDiff < 300 && lang.pastPrefix + lang.months(Math.round(dayDiff / 30.4375))    + lang.pastSuffix
