@@ -30,12 +30,16 @@ var timejs = {
 		// past prefix
 		pastPrefix: '',
 		// past suffix: ago
-		pastSuffix: 'назад',
+		pastSuffix: ' назад',
 		// future prefix: in
-		futurePrefix: 'через',
+		futurePrefix: 'через ',
 		// future suffix
 		futureSuffix: '',
-		
+		onedayago: ' Вчера', // yesterday
+		twodaysago: ' Позавчера',
+		at: ' в ',
+		sep: ':',
+		error: 'Ошибка',
 
 		/**
 		 * Plural forms
@@ -57,13 +61,13 @@ var timejs = {
 			if (number === 1)
 				return one;
 			if (number % 10 === 1 && number % 100 !== 11)
-				return number + ' ' + one;
+				return number + ' ' + one;
 			if (number % 10 > 1 && number % 10 < 5 && (number % 100 < 12 || number % 100 > 14))
-				return number + ' ' + few;
+				return number + ' ' + few;
 			if (number % 10 === 0 || number % 10 > 4 || (number % 100 > 10 && number % 100 < 15))
-				return number + ' ' + many;
+				return number + ' ' + many;
 				
-			return number + ' ' + other;
+			return number + ' ' + other;
 		},
 		minutes: function (_minutes) {
 			return this.plural(_minutes, 'минуту', 'минуты', 'минут', 'минуты');
@@ -93,34 +97,43 @@ var timejs = {
 	 */
 	humaneDate: function (time) {
 		var date = new Date((time || '').replace(/-/g, '/').replace(/[TZ]/g, ' '));
-		var diff = (((new Date()).getTime() - date.getTime()) / 1000);
+		var date_raw = new Date(time);
+		var date_now = new Date();
+		var offset = date_now.getTimezoneOffset();
+		var date_utc = new Date(date_now.getTime() + (offset * 60000));
+		//var offsetHours = Math.floor(offset / 60);
+		//var offsetPrefix = offset < 0 ? "+" : "-";
+
+		var diff = ((date_utc - date.getTime()) / 1000);
 		var dayDiff = Math.floor(diff / 86400);
 
-		//TODO: Dates and times in future
 		if (isNaN(dayDiff) || dayDiff < 0)
-			return false;
-
+			return lang.error;
 		var lang = this.lang;
 		if (diff < 45)
 			return lang.justNow;
-
-		return dayDiff == 0 &&
-			(
-				diff < 2700   && lang.pastPrefix + ' ' + lang.minutes(Math.round(diff / 60))         + ' ' + lang.pastSuffix ||
-				diff < 86400  && lang.pastPrefix + ' ' + lang.hours(Math.round(diff / 3600))         + ' ' + lang.pastSuffix
-			) ||
-				dayDiff < 7   && lang.pastPrefix + ' ' + lang.days(dayDiff)                          + ' ' + lang.pastSuffix ||
-				dayDiff < 25  && lang.pastPrefix + ' ' + lang.weeks(Math.round(dayDiff / 7))         + ' ' + lang.pastSuffix ||
-				dayDiff < 300 && lang.pastPrefix + ' ' + lang.months(Math.round(dayDiff / 30.4375))  + ' ' + lang.pastSuffix ||
-				//                 lang.pastPrefix + ' ' + lang.years(Math.round(dayDiff / 365.25))    + ' ' + lang.pastSuffix;
-				date.toLocaleDateString()
+/*
+			||                lang.pastPrefix + ' ' + lang.years(Math.round(dayDiff / 365.25))                    + ' ' + lang.pastSuffix;
+*/
+ 		var minutes = (date_raw.getMinutes()<10?'0':'') + date_raw.getMinutes();
+ 		var hours = (date_raw.getHours()<10?'0':'') + date_raw.getHours();
+		return (
+			  diff < 2700   && lang.pastPrefix + lang.minutes(Math.round(diff / 60))          + lang.pastSuffix ||
+			  diff < 86400  && lang.pastPrefix + lang.hours(Math.round(diff / 3600))          + lang.pastSuffix
+			) // сделать чтобы вчера уже было при 00 часов
+			|| dayDiff == 1   && lang.pastPrefix + lang.onedayago                               + lang.at + hours + lang.sep + minutes
+			|| dayDiff == 2   && lang.pastPrefix + lang.twodaysago                              + lang.at + hours + lang.sep + minutes
+			|| dayDiff < 7   && lang.pastPrefix + lang.days(dayDiff)                            + lang.pastSuffix
+			|| dayDiff < 25  && lang.pastPrefix + lang.weeks(Math.round(dayDiff / 7))           + lang.pastSuffix
+			|| dayDiff < 300 && lang.pastPrefix + lang.months(Math.round(dayDiff / 30.4375))    + lang.pastSuffix
+			date.toLocaleDateString();
 	},
 
 	/**
 	 * Initialization on DOM ready
 	 */
 	init: function() {
-		var self = this;		
+		var self = this;
 
 		// Update of all <time> tags
 		var updateTimes = function () {
@@ -130,7 +143,9 @@ var timejs = {
 				var elem = elems[i];
 				var datetime = elem.getAttribute('datetime');
 				if (datetime) {
-					elem.innerText = self.humaneDate(datetime);
+					elem.textContent = self.humaneDate(datetime);
+					//elem.textContent = (new Date(datetime));
+					self.debug && console.info(self.humaneDate(datetime)); // вывести инфу
 					!elem.getAttribute('title') && elem.setAttribute('title', (new Date(datetime)).toLocaleString());
 				}
 			}
