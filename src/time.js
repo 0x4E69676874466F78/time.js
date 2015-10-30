@@ -37,8 +37,8 @@ var timejs = {
 		twodaysago: ' Позавчера',
 		today: ' Сегодня',
 		at: ' в ',
-		sep: ':',
-		error: 'Ошибка',
+		sT: ':',
+		sD: '.',
 
 		/**
 		 * Plural forms
@@ -104,28 +104,43 @@ var timejs = {
 		//var offsetPrefix = offset < 0 ? "+" : "-";
 
 		var diff = ((date_utc - date.getTime()) / 1000);
-		var dayDiff = Math.floor(diff / 86400);
+		// новый день
+		var date_utc_newday = new Date(date_utc);
+ 			date_utc_newday.setDate(date_utc.getDate() + 1);
+ 			date_utc_newday.setHours(0);
+ 			date_utc_newday.setMinutes(0);
+ 			date_utc_newday.setSeconds(0);
+		// Учитываем что день начинается с 00
+		var dayDiff = Math.floor(
+			(
+				(
+					date_utc - date.getTime() - (date_raw - date_utc_newday) - (date_utc - date.getTime()) // разобраться с этим чудовищем
+				) / 1000
+			) / 86400
+		);
 
-		if (isNaN(dayDiff) || dayDiff < 0)
-			return lang.error;
 		var lang = this.lang;
-		if (diff < 45)
+		if (diff < 59)
 			return lang.justNow;
 /*
 			||                lang.pastPrefix + ' ' + lang.years(Math.round(dayDiff / 365.25))                    + ' ' + lang.pastSuffix;
 */
  		var minutes = (date_raw.getMinutes()<10?'0':'') + date_raw.getMinutes();
  		var hours = (date_raw.getHours()<10?'0':'') + date_raw.getHours();
+ 		var day = (date_raw.getDate()<10?'0':'') + date_raw.getDate();
+ 		var month = (date_raw.getMonth()+1<10?'0':'') + (date_raw.getMonth()+1);
+ 		var year = date_raw.getFullYear();
+ 		
 		return (
-			  diff < 2700   && lang.pastPrefix + lang.minutes(Math.round(diff / 60))          + lang.pastSuffix ||
-			  diff < 18000  && lang.pastPrefix + lang.hours(Math.round(diff / 3600))          + lang.pastSuffix // только если часов не больше 5
-			) // сделать чтобы вчера уже было при 00 часов
-			|| dayDiff === 0   && lang.pastPrefix + lang.today                                   + lang.at + hours + lang.sep + minutes
-			|| dayDiff === 1   && lang.pastPrefix + lang.onedayago                               + lang.at + hours + lang.sep + minutes
-			|| dayDiff === 2   && lang.pastPrefix + lang.twodaysago                              + lang.at + hours + lang.sep + minutes
-			|| dayDiff < 7   && lang.pastPrefix + lang.days(dayDiff)                            + lang.pastSuffix
-			|| dayDiff < 25  && lang.pastPrefix + lang.weeks(Math.round(dayDiff / 7))           + lang.pastSuffix
-			|| dayDiff < 300 && lang.pastPrefix + lang.months(Math.round(dayDiff / 30.4375))    + lang.pastSuffix
+			  diff < 2700   && lang.pastPrefix + lang.minutes(Math.round(diff / 60))              + lang.pastSuffix ||
+			  diff < 18000  && lang.pastPrefix + lang.hours(Math.round(diff / 3600))              + lang.pastSuffix // только если часов не больше 5
+			)
+			|| dayDiff === 0   && lang.pastPrefix + lang.today                                    + lang.at + hours + lang.sT + minutes
+			|| dayDiff === 1   && lang.pastPrefix + lang.onedayago                                + lang.at + hours + lang.sT + minutes
+			|| dayDiff === 2   && lang.pastPrefix + lang.twodaysago                               + lang.at + hours + lang.sT + minutes
+			|| dayDiff < 7     && lang.pastPrefix + lang.days(dayDiff)                            + lang.pastSuffix + ' (' + day + lang.sD + month + lang.sD + year + lang.at + hours + lang.sT + minutes + ')'
+			|| dayDiff < 25    && lang.pastPrefix + lang.weeks(Math.round(dayDiff / 7))           + lang.pastSuffix + ' (' + day + lang.sD + month + lang.sD + year + lang.at + hours + lang.sT + minutes + ')'
+			|| dayDiff < 300   && lang.pastPrefix + lang.months(Math.round(dayDiff / 30.4375))    + lang.pastSuffix + ' (' + day + lang.sD + month + lang.sD + year + lang.at + hours + lang.sT + minutes + ')'
 			date.toLocaleDateString();
 	},
 
