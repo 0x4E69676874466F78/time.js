@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Time.js — time tags humanization in HTML documents.
  *
