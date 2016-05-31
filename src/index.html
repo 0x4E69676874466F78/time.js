@@ -3,24 +3,33 @@
 <head>
 	<meta charset="utf-8" />
 	<title>time.js demo</title>
-</head>
 
-<body>
+	<script src="date.format.js"></script>
+	<script src="time.js"></script>
+	<script>
+	// detect and setup lang
+		var lng = navigator.browserLanguage || navigator.language || navigator.userLanguage;
+		switch (lng) {
+			case 'ru-RU':
+				lng = 'ru';
+				break;
+			case 'en-US':
+			case 'en-GB':
+				lng = 'en';
+				break;
+			default:
+				lng = 'en';
+		}
+		var s=document.createElement('script');
+		s.src='lang.' + lng + '.js';
+		var f=document.getElementsByTagName('script')[0];
+		f.parentNode.insertBefore(s,f);
 
-	<p><time datetime="2001-10-25T15:58:36+00:00">1</time></p>
-	<p><time datetime="2011-10-25T15:58:36+00:00">2</time></p>
-	<p><time datetime="2013-10-25T15:58:36+00:00">3</time></p>
-	<p><time datetime="2013-11-25T15:58:36+00:00">4</time></p>
-	<p><time datetime="2013-12-25T15:58:36+00:00">5</time></p>
-	<p><time datetime="2013-12-28T16:58:36+04:00">6</time></p>
-	<p><time datetime="2013-12-29T16:48:36+00:00">7</time></p>
-	<p><time datetime="2013-12-29T16:58:36+00:00">8</time></p>
-	<p><time>2013-12-29T16:58:36+00:00</time></p>
+		// start delay
+		timejs.startDelay = 500;
 
-	<script src="time.js" type="text/javascript"></script>
-	<script type="text/javascript">
 		// update interval
-		timejs.updateInterval = 1000;
+		timejs.updateInterval = 15000;
 
 		//debug mode
 		timejs.debug = true;
@@ -28,6 +37,20 @@
 		// init on DOM ready
 		timejs.init();
 	</script>
+</head>
+
+<body>
+
+	<p><time datetime="2001-10-25T15:58:36">1</time></p>
+	<p><time datetime="2011-10-25T15:58:36">2</time></p>
+	<p><time datetime="2013-10-25T15:58:36">3</time></p>
+	<p><time datetime="2013-11-25T15:58:36">4</time></p>
+	<p><time datetime="2013-12-25T15:58:36">5</time></p>
+	<p><time datetime="2013-12-28T16:58:36+04:00">6</time></p>
+	<p><time datetime="2013-12-29T16:48:36">7</time></p>
+	<p><time datetime="2013-12-29T16:58:36">8</time></p>
+	<p><time>2013-12-29T16:58:36</time></p>
+
 
 </body>
 </html>
