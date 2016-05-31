@@ -10,13 +10,14 @@
 		// detect and setup lang
 		var lng = navigator.browserLanguage || navigator.language || navigator.userLanguage;
 		switch (lng) {
+			case 'ru':
 			case 'ru-RU':
 			case 'ru-UA':
 			case 'ru-BY':
 			case 'ru-MO':
-			case 'ru':
 				lng = 'ru';
 				break;
+			case 'en':
 			case 'en-US':
 			case 'en-GB':
 			case 'en-AU':
@@ -27,7 +28,6 @@
 			case 'en-JM':
 			case 'en-BZ':
 			case 'en-TT':
-			case 'en':
 				lng = 'en';
 				break;
 			default:
