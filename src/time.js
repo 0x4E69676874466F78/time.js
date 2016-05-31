@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Time.js — time tags humanization in HTML documents.
  *
@@ -5,11 +7,14 @@
  * @link https://github.com/maximal/time.js
  * @copyright © MaximAL 2013-2014, NightFox 2015
  */
+
+var timer;
 var timejs = {
 
 	/**
 	 * Update interval in milliseconds
 	 */
+	startDelay: 500,
 	updateInterval: 5000,
 	
 	/**
@@ -17,77 +22,6 @@ var timejs = {
 	 */
 	debug: false,
 
-	/**
-	 * Internationalization section
-	 * Can be defined for different language
-	 */
-	lang: {
-		// just now
-		justNow: 'только что',
-		//// past and future prefixes and suffixes
-		// past prefix
-		pastPrefix: '',
-		// past suffix: ago
-		pastSuffix: ' назад',
-		// future prefix: in
-		futurePrefix: 'через ',
-		// future suffix
-		futureSuffix: '',
-		onedayago: ' Вчера', // yesterday
-		twodaysago: ' Позавчера',
-		today: ' Сегодня',
-		at: ' в ',
-		sT: ':',
-		sD: '.',
-
-		/**
-		 * Plural forms
-		 * @link http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html
-		 *
-		 * @param number
-		 * @param one
-		 * @param few
-		 * @param many
-		 * @param other
-		 * @returns {*}
-		 */
-		plural: function (number, one, few, many, other) {
-			// Default is Russian:
-			//     one   → n mod 10 is 1 and n mod 100 is not 11;
-			//     few   → n mod 10 in 2..4 and n mod 100 not in 12..14;
-			//     many  → n mod 10 is 0 or n mod 10 in 5..9 or n mod 100 in 11..14;
-			//     other → everything else.
-			if (number === 1)
-				return one;
-			if (number % 10 === 1 && number % 100 !== 11)
-				return number + ' ' + one;
-			if (number % 10 > 1 && number % 10 < 5 && (number % 100 < 12 || number % 100 > 14))
-				return number + ' ' + few;
-			if (number % 10 === 0 || number % 10 > 4 || (number % 100 > 10 && number % 100 < 15))
-				return number + ' ' + many;
-			
-			return number + ' ' + other;
-		},
-		minutes: function (_minutes) {
-			return this.plural(_minutes, 'минуту', 'минуты', 'минут', 'минуты');
-		},
-		hours: function (_hours) {
-			return this.plural(_hours, 'час', 'часа', 'часов', 'часа');
-		},
-		days: function (_days) {
-			return this.plural(_days, 'день', 'дня', 'дней', 'дня');
-		},
-		weeks: function (_weeks) {
-			return this.plural(_weeks, 'неделю', 'недели', 'недель', 'недели');
-		},
-		months: function (_months) {
-			return this.plural(_months, 'месяц', 'месяца', 'месяцев', 'месяца');
-		},
-		years: function (_years) {
-			return this.plural(_years, 'год', 'года', 'лет', 'года');
-		}
-	},
-	//// /Internationalization section
 
 	/**
 	 * Date humanization
@@ -122,27 +56,30 @@ var timejs = {
 		var lang = this.lang;
 		if (diff < 59)
 			return lang.justNow;
-/*
-			||                lang.pastPrefix + ' ' + lang.years(Math.round(dayDiff / 365.25))                    + ' ' + lang.pastSuffix;
-*/
+
  		var minutes = (date_raw.getMinutes()<10?'0':'') + date_raw.getMinutes();
  		var hours = (date_raw.getHours()<10?'0':'') + date_raw.getHours();
  		var day = (date_raw.getDate()<10?'0':'') + date_raw.getDate();
  		var month = (date_raw.getMonth()+1<10?'0':'') + (date_raw.getMonth()+1);
  		var year = date_raw.getFullYear();
- 		
+
 		return (
 			  diff < 2700   && lang.pastPrefix + lang.minutes(Math.round(diff / 60))              + lang.pastSuffix ||
 			  diff < 18000  && lang.pastPrefix + lang.hours(Math.round(diff / 3600))              + lang.pastSuffix // только если часов не больше 5
 			)
-			|| dayDiff === 0   && lang.pastPrefix + lang.today                                    + lang.at + hours + lang.sT + minutes
-			|| dayDiff === 1   && lang.pastPrefix + lang.onedayago                                + lang.at + hours + lang.sT + minutes
-			|| dayDiff === 2   && lang.pastPrefix + lang.twodaysago                               + lang.at + hours + lang.sT + minutes
-			|| dayDiff < 7     && lang.pastPrefix + lang.days(dayDiff)                            + lang.pastSuffix + ' (' + day + lang.sD + month + lang.sD + year + lang.at + hours + lang.sT + minutes + ')'
-			|| dayDiff < 25    && lang.pastPrefix + lang.weeks(Math.round(dayDiff / 7))           + lang.pastSuffix + ' (' + day + lang.sD + month + lang.sD + year + lang.at + hours + lang.sT + minutes + ')'
-			|| dayDiff < 300   && lang.pastPrefix + lang.months(Math.round(dayDiff / 30.4375))    + lang.pastSuffix + ' (' + day + lang.sD + month + lang.sD + year + lang.at + hours + lang.sT + minutes + ')'
-			date.toLocaleDateString();
+			|| dayDiff === 0   && lang.pastPrefix + lang.today                                    + lang.at + date_raw.format(lang.timeformat)
+			|| dayDiff === 1   && lang.pastPrefix + lang.onedayago                                + lang.at + date_raw.format(lang.timeformat)
+			|| dayDiff === 2   && lang.pastPrefix + lang.twodaysago                               + lang.at + date_raw.format(lang.timeformat)
+			|| dayDiff < 7     && lang.pastPrefix + lang.days(dayDiff)                            + lang.pastSuffix + ' (' + date_raw.format(lang.dateformat) + ')'
+//			|| dayDiff < 25    && lang.pastPrefix + lang.weeks(Math.round(dayDiff / 7))           + lang.pastSuffix + ' (' + date_raw.format(lang.dateformat) + ')'
+//			|| dayDiff < 300   && lang.pastPrefix + lang.months(Math.round(dayDiff / 30.4375))    + lang.pastSuffix + ' (' + date_raw.format(lang.dateformat) + ')'
+			|| dayDiff >= 7     && lang.pastPrefix + date_raw.format(lang.dateformat);
+//			|| dayDiff < 365   && lang.pastPrefix + lang.years(Math.round(dayDiff / 365.25))      + lang.pastSuffix
+			//date.toLocaleDateString();
 	},
+
+
+
 
 	/**
 	 * Initialization on DOM ready
@@ -164,23 +101,29 @@ var timejs = {
 					!elem.getAttribute('title') && elem.setAttribute('title', (new Date(datetime)).toLocaleString());
 				}
 			}
+			// Останавливаем таймер запуска
+			if (typeof startTimer !== "undefined") {
+				clearInterval(startTimer);
+				startTimer = undefined;
+				// Updating all times on page and setting timers if updateInterval > 0
+				if (self.updateInterval && self.updateInterval > 0) {
+					setInterval(updateTimes, self.updateInterval);
+				}
+			}
 		};
-		
 		// Multiple initialization prevention
 		var initOnLoadCalled = false;
 		var initOnLoad = function () {
-			if (initOnLoadCalled)
-				return;
+			if (initOnLoadCalled) { return; }
 			initOnLoadCalled = true;
-
-			// Updating all times on page and setting timers if updateInterval > 0
 			updateTimes();
-			if (self.updateInterval && self.updateInterval > 0)
-				setInterval(updateTimes, self.updateInterval);
+			// запуск
+			var startTimer = setInterval(updateTimes, self.startDelay);
 		};
 
 		// DOM content ready event listeners
 		addEventListener('DOMContentLoaded', initOnLoad, false);
 		addEventListener('load', initOnLoad, false);
 	}
+	
 };
